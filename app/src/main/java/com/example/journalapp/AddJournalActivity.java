@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -18,17 +19,22 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.journalapp.Model.Journal;
 import com.example.journalapp.Util.JournalUser;
 import com.google.android.gms.auth.api.signin.internal.Storage;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.util.Date;
 
 public class AddJournalActivity extends AppCompatActivity {
 
@@ -104,7 +110,8 @@ public class AddJournalActivity extends AppCompatActivity {
                 intent.setType("image/*");
                 startActivityForResult(intent, GALLERY_CODE);
             }
-        }); ;
+        });
+        ;
 
     }
 
@@ -114,7 +121,7 @@ public class AddJournalActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(description) && imageUri!= null){
+        if (!TextUtils.isEmpty(title) && !TextUtils.isEmpty(description) && imageUri != null) {
             final StorageReference filepath = storageReference
                     .child("journal_images")
                     .child("my_image_" + Timestamp.now().getSeconds());
@@ -130,10 +137,32 @@ public class AddJournalActivity extends AppCompatActivity {
                                     String imageUrl = uri.toString();
 
                                     // create object
+                                    Journal journal = new Journal();
+                                    journal.setTitle(title);
+                                    journal.setDescription(description);
+                                    journal.setUserID(imageUrl);
+                                    journal.setTimestamp(new Timestamp(new Date()));
+                                    journal.setUsername(currentUserName);
+                                    journal.setUserID(currentUserId);
 
+                                    collectionReference.add(journal)
+                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                @Override
+                                                public void onSuccess(DocumentReference documentReference) {
+                                                    progressBar.setVisibility(View.INVISIBLE);
+                                                    startActivity(new Intent(AddJournalActivity.this,
+                                                            JournalList.class));
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Toast.makeText(getApplicationContext(),
+                                                            "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
                                 }
-                            })
-
+                            });
                         }
                     });
         }
