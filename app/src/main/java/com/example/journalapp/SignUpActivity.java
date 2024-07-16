@@ -109,7 +109,7 @@ public class SignUpActivity extends AppCompatActivity {
                                 // create usetMap
                                 Map<String, String> userMap = new HashMap<>();
                                 userMap.put("userId", currentUserID);
-                                userMap.put("userName", username);
+                                userMap.put("username", username);
 
                                 // add user fo firestore
                                 collectionReference.add(userMap)

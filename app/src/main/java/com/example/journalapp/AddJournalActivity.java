@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -131,40 +132,87 @@ public class AddJournalActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                            filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri uri) {
-                                    String imageUrl = uri.toString();
+                            filepath.getDownloadUrl()
+                                    .addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                        @Override
+                                        public void onSuccess(Uri uri) {
+                                            String imageUrl = uri.toString();
 
-                                    // create object
-                                    Journal journal = new Journal();
-                                    journal.setTitle(title);
-                                    journal.setDescription(description);
-                                    journal.setUserID(imageUrl);
-                                    journal.setTimestamp(new Timestamp(new Date()));
-                                    journal.setUsername(currentUserName);
-                                    journal.setUserID(currentUserId);
+                                            // create object
+                                            Journal journal = new Journal();
+                                            journal.setTitle(title);
+                                            journal.setDescription(description);
+                                            journal.setUserID(imageUrl);
+                                            journal.setTimestamp(new Timestamp(new Date()));
+                                            journal.setUsername(currentUserName);
+                                            journal.setUserID(currentUserId);
 
-                                    collectionReference.add(journal)
-                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                @Override
-                                                public void onSuccess(DocumentReference documentReference) {
-                                                    progressBar.setVisibility(View.INVISIBLE);
-                                                    startActivity(new Intent(AddJournalActivity.this,
-                                                            JournalList.class));
-                                                }
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    Toast.makeText(getApplicationContext(),
-                                                            "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                                }
-                                            });
-                                }
-                            });
+                                            collectionReference.add(journal)
+                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                        @Override
+                                                        public void onSuccess(DocumentReference documentReference) {
+                                                            progressBar.setVisibility(View.INVISIBLE);
+                                                            startActivity(new Intent(AddJournalActivity.this,
+                                                                    JournalList.class));
+                                                            finish();
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            Toast.makeText(getApplicationContext(),
+                                                                    "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    });
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            progressBar.setVisibility(View.INVISIBLE);
+                                        }
+                                    });
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressBar.setVisibility(View.INVISIBLE);
                         }
                     });
+            Toast.makeText(getApplicationContext(),
+                    "Saved!: ", Toast.LENGTH_SHORT).show();
+
+
+        }else{
+            progressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == GALLERY_CODE && resultCode == RESULT_OK){
+            if (data != null){
+                imageUri = data.getData();
+                post_imageView.setImageURI(imageUri);
+            }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        user = firebaseAuth.getCurrentUser();
+        firebaseAuth.addAuthStateListener(authStateListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (firebaseAuth != null){
+            firebaseAuth.removeAuthStateListener(authStateListener);
         }
     }
 }
