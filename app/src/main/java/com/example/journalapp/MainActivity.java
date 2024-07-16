@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseUser firebaseUser;
 
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
+
+    private CollectionReference collectionReference = database.collection("Users");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

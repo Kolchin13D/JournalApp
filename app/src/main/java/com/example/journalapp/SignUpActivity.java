@@ -1,5 +1,6 @@
 package com.example.journalapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -14,17 +15,23 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.journalapp.Util.JournalUser;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Firebase;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -33,7 +40,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
-    private FirebaseUser firebaseUser;
+    private FirebaseUser currentUser;
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
     private CollectionReference collectionReference = database.collection("Users");
 
@@ -43,19 +50,21 @@ public class SignUpActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_sign_up);
 
+        firebaseAuth = FirebaseAuth.getInstance();
+
         btnSave = findViewById(R.id.btnSave);
         loginNew = findViewById(R.id.loginNew);
         passwordNew = findViewById(R.id.passNew);
-        usernameET  = findViewById(R.id.username);
+        usernameET = findViewById(R.id.username);
 
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                firebaseUser = firebaseAuth.getCurrentUser();
+                currentUser = firebaseAuth.getCurrentUser();
 
-                if (firebaseUser != null) {
+                if (currentUser != null) {
 
-                } else {
+                }else {
 
                 }
             }
@@ -64,16 +73,17 @@ public class SignUpActivity extends AppCompatActivity {
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!TextUtils.isEmpty((loginNew.getText().toString()))
-                        && !TextUtils.isEmpty(passwordNew.getText().toString())) {
+                if (!TextUtils.isEmpty(loginNew.getText().toString())
+                        && !TextUtils.isEmpty(usernameET.getText().toString())
+                        && !TextUtils.isEmpty(passwordNew.getText().toString())){
 
-                    String login = loginNew.getText().toString().trim();
+                    String email = loginNew.getText().toString().trim();
                     String password = passwordNew.getText().toString().trim();
                     String username = usernameET.getText().toString().trim();
 
-                    CreateUser(login, password, username);
+                    CreateUser(email, password, username);
 
-                }else {
+                } else {
                     Toast.makeText(getApplicationContext(), "Fields empty", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -81,33 +91,80 @@ public class SignUpActivity extends AppCompatActivity {
 
     }
 
-    private void CreateUser(String login, String password, final String username) {
-        if (!TextUtils.isEmpty((loginNew.getText().toString()))
-                && !TextUtils.isEmpty(passwordNew.getText().toString())) {
+    private void CreateUser(String email, String password, final String username) {
+        if (!TextUtils.isEmpty(email)
+                && !TextUtils.isEmpty(password) && !TextUtils.isEmpty(username)){
 
-            firebaseAuth.createUserWithEmailAndPassword(login, password)
+            firebaseAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()){
+                            if (task.isSuccessful()) {
 
                                 // take user to next activity
-                                firebaseUser = firebaseAuth.getCurrentUser();
-                                assert  firebaseUser != null;
-                                final String CurrentUserID = firebaseUser.getUid();
+                                currentUser = firebaseAuth.getCurrentUser();
+                                assert currentUser != null;
+                                final String currentUserID = currentUser.getUid();
 
                                 // create usetMap
                                 Map<String, String> userMap = new HashMap<>();
-                                userMap.put("userId", CurrentUserID);
+                                userMap.put("userId", currentUserID);
                                 userMap.put("userName", username);
 
+                                // add user fo firestore
+                                collectionReference.add(userMap)
+                                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                            @Override
+                                            public void onSuccess(DocumentReference documentReference) {
+                                                documentReference.get()
+                                                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                                if (Objects.requireNonNull(task.getResult().exists())) {
+                                                                    String name = task.getResult().getString("username");
+
+                                                                    // use of flobal journal user
+                                                                    JournalUser journalUser = JournalUser.getInstance();
+                                                                    journalUser.setUserID(currentUserID);
+                                                                    journalUser.setUsername(name);
+
+
+                                                                    //go to new activity
+                                                                    Intent intent = new Intent(SignUpActivity.this,
+                                                                            AddJournalActivity.class);
+                                                                    intent.putExtra("username", name);
+                                                                    intent.putExtra("userID", currentUserID);
+
+                                                                    Toast.makeText(getApplicationContext(), "User created" + name,
+                                                                            Toast.LENGTH_SHORT).show();
+
+                                                                    startActivity(intent);
+                                                                }
+                                                            }
+                                                        }).addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                Toast.makeText(getApplicationContext(), "Exception - " + e,
+                                                                        Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        });
+                                            }
+                                        });
                             }
                         }
                     });
 
-        }else {
+        } else {
             Toast.makeText(getApplicationContext(), "Fields empty", Toast.LENGTH_SHORT).show();
         }
-        
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        currentUser = firebaseAuth.getCurrentUser();
+        firebaseAuth.addAuthStateListener(authStateListener);
     }
 }
