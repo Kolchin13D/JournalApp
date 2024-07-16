@@ -13,10 +13,22 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.Firebase;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 public class MainActivity extends AppCompatActivity {
 
-    EditText login, password;
+    EditText loginET, passwordET;
     Button signIN, logIN;
+
+    //  firebase authentication
+    private FirebaseAuth firebaseAuth;
+    private FirebaseAuth.AuthStateListener authStateListener;
+    private FirebaseUser firebaseUser;
+
+    private FirebaseFirestore database = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
         signIN = findViewById(R.id.btnCreate);
         logIN = findViewById(R.id.btnLogin);
+        loginET = findViewById(R.id.login);
+        passwordET = findViewById(R.id.pass);
 
         signIN.setOnClickListener(new View.OnClickListener() {
             @Override
