@@ -89,8 +89,6 @@ public class Journal_list extends AppCompatActivity {
                 }
                 break;
         }
-
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -98,7 +96,10 @@ public class Journal_list extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        collectionReference.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+        collectionReference
+                .whereEqualTo("userID", JournalUser.getInstance().getUserID())
+                .get()
+                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
@@ -106,7 +107,6 @@ public class Journal_list extends AppCompatActivity {
 
                     for (QueryDocumentSnapshot journals : queryDocumentSnapshots) {
                         Journal journal = journals.toObject(Journal.class);
-
                         journalList.add(journal);
                     }
 
@@ -123,52 +123,5 @@ public class Journal_list extends AppCompatActivity {
 
             }
         });
-
-        collectionReference.whereEqualTo("userId", JournalUser.getInstance()
-                        .getUserID())
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                    @Override
-                    public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                        if (queryDocumentSnapshots.isEmpty()) {
-                            Log.v("TAGJJJ", "queryDocumentSnapshots EMPTY ");
-                        }
-
-
-                        Log.v("TAGJJJ", JournalUser.getInstance().getUsername().toString());
-                        Log.v("TAGJJJ", queryDocumentSnapshots.toString() + " SNAP");
-
-                        for (QueryDocumentSnapshot journals : queryDocumentSnapshots) {
-                            Log.v("TAGJJJ", queryDocumentSnapshots.toString());
-                        }
-
-                        if (!queryDocumentSnapshots.isEmpty()) {
-
-                            for (QueryDocumentSnapshot journals : queryDocumentSnapshots) {
-                                Journal journal = journals.toObject(Journal.class);
-
-
-                                journalList.add(journal);
-                            }
-
-//                            journalItemAdapter = new JournalAdapter(Journal_list.this, journalList);
-//                            recyclerView.setAdapter(journalItemAdapter);
-//                            journalItemAdapter.notifyDataSetChanged();
-
-                        } else {
-                            Toast.makeText(getApplicationContext(), "queryDocumentSnapshots is empty!",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(getApplicationContext(), "Opps! Something went wrong!", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
-
 }
