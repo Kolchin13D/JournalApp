@@ -55,4 +55,8 @@ dependencies {
     //  storage
     implementation("com.google.firebase:firebase-storage:21.0.0")
 
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
+
 }

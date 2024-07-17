@@ -142,7 +142,7 @@ public class AddJournalActivity extends AppCompatActivity {
                                             Journal journal = new Journal();
                                             journal.setTitle(title);
                                             journal.setDescription(description);
-                                            journal.setUserID(imageUrl);
+                                            journal.setImageUrl(imageUrl);
                                             journal.setTimestamp(new Timestamp(new Date()));
                                             journal.setUsername(currentUserName);
                                             journal.setUserID(currentUserId);
@@ -153,7 +153,7 @@ public class AddJournalActivity extends AppCompatActivity {
                                                         public void onSuccess(DocumentReference documentReference) {
                                                             progressBar.setVisibility(View.INVISIBLE);
                                                             startActivity(new Intent(AddJournalActivity.this,
-                                                                    JournalList.class));
+                                                                    Journal_list.class));
                                                             finish();
                                                         }
                                                     })
@@ -181,7 +181,7 @@ public class AddJournalActivity extends AppCompatActivity {
                         }
                     });
             Toast.makeText(getApplicationContext(),
-                    "Saved!: ", Toast.LENGTH_SHORT).show();
+                    "Saved! ", Toast.LENGTH_SHORT).show();
 
 
         }else{

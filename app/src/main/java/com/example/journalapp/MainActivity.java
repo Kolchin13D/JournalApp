@@ -3,6 +3,7 @@ package com.example.journalapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -41,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private FirebaseUser firebaseUser;
-
     private FirebaseFirestore database = FirebaseFirestore.getInstance();
 
     private CollectionReference collectionReference = database.collection("Users");
@@ -70,7 +70,8 @@ public class MainActivity extends AppCompatActivity {
         logIN.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LoginEmailPass(loginET.getText().toString().trim(),
+                LoginEmailPass(
+                        loginET.getText().toString().trim(),
                         passwordET.getText().toString().trim());
             }
         });
@@ -96,17 +97,20 @@ public class MainActivity extends AppCompatActivity {
                                         public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
 
                                             if (error != null) {
-
+                                                Toast.makeText(getApplicationContext(), "ERROR" + error.getMessage(),
+                                                        Toast.LENGTH_SHORT).show();
                                             }
                                             assert value != null;
+
                                             if (!value.isEmpty()) {
                                                 for (QueryDocumentSnapshot snapshot : value) {
+
                                                     JournalUser journalUser = JournalUser.getInstance();
                                                     journalUser.setUsername(snapshot.getString("username"));
                                                     journalUser.setUserID(snapshot.getString("userId"));
 
                                                     startActivity(new Intent(MainActivity.this,
-                                                            AddJournalActivity.class));
+                                                            Journal_list.class));
                                                 }
                                             }
 
