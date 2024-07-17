@@ -133,7 +133,7 @@ public class SignUpActivity extends AppCompatActivity {
                                                                     Intent intent = new Intent(SignUpActivity.this,
                                                                             AddJournalActivity.class);
                                                                     intent.putExtra("username", name);
-                                                                    intent.putExtra("userID", currentUserID);
+                                                                    intent.putExtra("userId", currentUserID);
 
                                                                     Toast.makeText(getApplicationContext(), "User created" + name,
                                                                             Toast.LENGTH_SHORT).show();
